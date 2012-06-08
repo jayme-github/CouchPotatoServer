@@ -28,7 +28,7 @@ class Newznab(NZBProvider, RSS):
     cat_ids = [
         ([2010], ['dvdr']),
         ([2030], ['cam', 'ts', 'dvdrip', 'tc', 'r5', 'scr']),
-        ([2040], ['720p', '1080p']),
+        ([2040,2050,2060,1060], ['720p', '1080p']),
         ([2050], ['bd50']),
     ]
     cat_backup_id = 2000
@@ -89,7 +89,7 @@ class Newznab(NZBProvider, RSS):
         cat_id = self.getCatId(quality['identifier'])
         arguments = tryUrlencode({
             'imdbid': movie['library']['identifier'].replace('tt', ''),
-            'cat': cat_id[0],
+            'cat': ','.join( [str(c) for c in cat_id] ),
             'apikey': host['api_key'],
             'extended': 1
         })
