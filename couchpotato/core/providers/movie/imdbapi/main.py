@@ -24,6 +24,7 @@ class IMDBAPI(MovieProvider):
         # Disable if not english as there is no multilanguage support...
         if Env.setting('language').startswith( 'en' ):
             addEvent('movie.search', self.search)
+        addEvent('movie.searchimdb', self.search)
         addEvent('movie.info', self.getInfo)
 
     def search(self, q, limit = 12):
