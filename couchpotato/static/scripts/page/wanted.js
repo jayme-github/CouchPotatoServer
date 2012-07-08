@@ -28,8 +28,9 @@ var MovieActions = {};
 window.addEvent('domready', function(){
 
 	MovieActions.Wanted = {
-		'IMBD': IMDBAction
-		,'releases': ReleaseAction
+		'IMDB': IMDBAction
+		,'Trailer': TrailerAction
+		,'Releases': ReleaseAction
 
 		,'Edit': new Class({
 
@@ -86,7 +87,7 @@ window.addEvent('domready', function(){
 						}).inject(self.profile_select);
 
 						if(self.movie.profile)
-							self.profile_select.set('value', self.movie.profile.data.id);
+							self.profile_select.set('value', profile.id ? profile.id : profile.data.id);
 					});
 
 				}
@@ -236,12 +237,12 @@ window.addEvent('domready', function(){
 	};
 
 	MovieActions.Snatched = {
-		'IMBD': IMDBAction
+		'IMDB': IMDBAction
 		,'Delete': MovieActions.Wanted.Delete
 	};
 
 	MovieActions.Done = {
-		'IMBD': IMDBAction
+		'IMDB': IMDBAction
 		,'Edit': MovieActions.Wanted.Edit
 		,'Files': new Class({
 

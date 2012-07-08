@@ -926,16 +926,24 @@ Option.Choice = new Class({
 		var mtches = []
 		if(matches)
 			matches.each(function(match, mnr){
-				var msplit = value.split(match);
-				msplit.each(function(matchsplit, snr){
-					if(msplit.length-1 == snr)
-						value = matchsplit;
-					mtches.append([value == matchsplit ? match : matchsplit]);
+				var pos = value.indexOf(match),
+					msplit = [value.substr(0, pos), value.substr(pos, match.length), value.substr(pos+match.length)];
 
-					if(matches.length*2 == mtches.length)
-						mtches.append([value]);
+				msplit.each(function(matchsplit, snr){
+					if(msplit.length-1 == snr){
+						value = matchsplit;
+
+						if(matches.length-1 == mnr)
+							mtches.append([value]);
+
+						return;
+					}
+					mtches.append([value == matchsplit ? match : matchsplit]);
 				});
 			});
+		
+		if(mtches.length == 0 && value != '')
+			mtches.include(value);
 
 		mtches.each(self.addTag.bind(self));
 
@@ -958,7 +966,7 @@ Option.Choice = new Class({
 	},
 
 	addLastTag: function(){
-		if(this.tag_input.getElement('li.choice:last-child'))
+		if(this.tag_input.getElement('li.choice:last-child') || !this.tag_input.getElement('li'))
 			this.addTag('');
 	},
 
@@ -1146,7 +1154,7 @@ Option.Choice.Tag = new Class({
 
 			var temp_input = new Element('input', {
 				'events': {
-					'keyup': function(e){
+					'keydown': function(e){
 						e.stop();
 
 						if(e.key == 'right'){
@@ -1160,6 +1168,7 @@ Option.Choice.Tag = new Class({
 						else if (e.key == 'backspace'){
 							self.del();
 							this.destroy();
+							self.fireEvent('goLeft');
 						}
 					}
 				},

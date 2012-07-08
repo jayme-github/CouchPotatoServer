@@ -20,12 +20,12 @@ import warnings
 
 def getOptions(base_path, args):
 
-    data_dir = getDataDir()
-
     # Options
     parser = ArgumentParser(prog = 'CouchPotato.py')
-    parser.add_argument('--config_file', default = os.path.join(data_dir, 'settings.conf'),
-                        dest = 'config_file', help = 'Absolute or ~/ path of the settings file (default ./_data/settings.conf)')
+    parser.add_argument('--data_dir',
+                        dest = 'data_dir', help = 'Absolute or ~/ path of the data dir')
+    parser.add_argument('--config_file',
+                        dest = 'config_file', help = 'Absolute or ~/ path of the settings file (default DATA_DIR/settings.conf)')
     parser.add_argument('--debug', action = 'store_true',
                         dest = 'debug', help = 'Debug mode')
     parser.add_argument('--console_log', action = 'store_true',
@@ -34,12 +34,21 @@ def getOptions(base_path, args):
                         dest = 'quiet', help = 'No console logging')
     parser.add_argument('--daemon', action = 'store_true',
                         dest = 'daemon', help = 'Daemonize the app')
-    parser.add_argument('--pid_file', default = os.path.join(data_dir, 'couchpotato.pid'),
+    parser.add_argument('--pid_file',
                         dest = 'pid_file', help = 'Path to pidfile needed for daemon')
 
     options = parser.parse_args(args)
 
+    data_dir = os.path.expanduser(options.data_dir if options.data_dir else getDataDir())
+
+    if not options.config_file:
+        options.config_file = os.path.join(data_dir, 'settings.conf')
+
+    if not options.pid_file:
+        options.pid_file = os.path.join(data_dir, 'couchpotato.pid')
+
     options.config_file = os.path.expanduser(options.config_file)
+    options.pid_file = os.path.expanduser(options.pid_file)
 
     return options
 
@@ -155,10 +164,10 @@ def runCouchPotato(options, base_path, args, data_dir = None, log_dir = None, En
     import color_logs
     from couchpotato.core.logger import CPLog
     log = CPLog(__name__)
-    log.debug('Started with options %s' % options)
+    log.debug('Started with options %s', options)
 
     def customwarn(message, category, filename, lineno, file = None, line = None):
-        log.warning('%s %s %s line:%s' % (category, message, filename, lineno))
+        log.warning('%s %s %s line:%s', (category, message, filename, lineno))
     warnings.showwarning = customwarn
 
 
@@ -185,7 +194,7 @@ def runCouchPotato(options, base_path, args, data_dir = None, log_dir = None, En
             current_db_version = db_version(db, repo)
 
         if current_db_version < latest_db_version and not debug:
-            log.info('Doing database upgrade. From %d to %d' % (current_db_version, latest_db_version))
+            log.info('Doing database upgrade. From %d to %d', (current_db_version, latest_db_version))
             upgrade(db, repo)
 
     # Configure Database
@@ -220,7 +229,7 @@ def runCouchPotato(options, base_path, args, data_dir = None, log_dir = None, En
     app.register_blueprint(api, url_prefix = '%s/api/%s/' % (url_base, api_key))
 
     # Some logging and fire load event
-    try: log.info('Starting server on port %(port)s' % config)
+    try: log.info('Starting server on port %(port)s', config)
     except: pass
     fireEventAsync('app.load')
 
@@ -248,7 +257,7 @@ def runCouchPotato(options, base_path, args, data_dir = None, log_dir = None, En
             try:
                 nr, msg = e
                 if nr == 48:
-                    log.info('Already in use, try %s more time after few seconds' % restart_tries)
+                    log.info('Already in use, try %s more time after few seconds', restart_tries)
                     time.sleep(1)
                     restart_tries -= 1
 

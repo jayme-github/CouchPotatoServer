@@ -18,7 +18,10 @@ log = CPLog(__name__)
 
 class Core(Plugin):
 
-    ignore_restart = ['Core.restart', 'Core.shutdown', 'Updater.check']
+    ignore_restart = [
+        'Core.restart', 'Core.shutdown',
+        'Updater.check', 'Updater.autoUpdate',
+    ]
     shutdown_started = False
 
     def __init__(self):
@@ -43,6 +46,7 @@ class Core(Plugin):
         addEvent('app.base_url', self.createBaseUrl)
         addEvent('app.api_url', self.createApiUrl)
         addEvent('app.version', self.version)
+        addEvent('app.load', self.checkDataDir)
 
         addEvent('setting.save.core.password', self.md5Password)
         addEvent('setting.save.core.api_key', self.checkApikey)
@@ -53,6 +57,12 @@ class Core(Plugin):
 
     def checkApikey(self, value):
         return value if value and len(value) > 3 else uuid4().hex
+
+    def checkDataDir(self):
+        if Env.get('app_dir') in Env.get('data_dir'):
+            log.error('You should NOT use your CouchPotato directory to save your settings in. Files will get overwritten or be deleted.')
+
+        return True
 
     def available(self):
         return jsonified({
@@ -96,7 +106,7 @@ class Core(Plugin):
         while loop:
             log.debug('Asking who is running')
             still_running = fireEvent('plugin.running', merge = True)
-            log.debug('Still running: %s' % still_running)
+            log.debug('Still running: %s', still_running)
 
             if len(still_running) == 0:
                 break
@@ -105,7 +115,7 @@ class Core(Plugin):
 
             running = list(set(still_running) - set(self.ignore_restart))
             if len(running) > 0:
-                log.info('Waiting on plugins to finish: %s' % running)
+                log.info('Waiting on plugins to finish: %s', running)
             else:
                 loop = False
 
@@ -118,7 +128,7 @@ class Core(Plugin):
         except RuntimeError:
             pass
         except:
-            log.error('Failed shutting down the server: %s' % traceback.format_exc())
+            log.error('Failed shutting down the server: %s', traceback.format_exc())
 
         fireEvent('app.after_shutdown', restart = restart)
 
