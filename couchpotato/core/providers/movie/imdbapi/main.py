@@ -20,7 +20,8 @@ class IMDBAPI(MovieProvider):
     http_time_between_calls = 0
 
     def __init__(self):
-        addEvent('movie.search', self.search)
+        # Disable as there is no multilanguage support...
+        #addEvent('movie.search', self.search)
         addEvent('movie.info', self.getInfo)
 
     def search(self, q, limit = 12):

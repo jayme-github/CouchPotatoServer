@@ -52,6 +52,11 @@ config = [{
             'advanced': True,
             'options': [
                 {
+                    'name': 'language',
+                    'default': 'en-US',
+                    'description': 'Language for movie search and info',
+                },
+                {
                     'name': 'api_key',
                     'default': uuid4().hex,
                     'readonly': 1,

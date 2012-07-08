@@ -23,6 +23,7 @@ class Env(object):
     _deamonize = False
     _desktop = None
     _session = None
+    _language = 'en-US'
 
     ''' Data paths and directories '''
     _app_dir = ""
@@ -42,7 +43,7 @@ class Env(object):
     @staticmethod
     def all():
         ret = ''
-        for attr in ['encoding', 'debug', 'args', 'app_dir', 'data_dir', 'desktop', 'options']:
+        for attr in ['encoding', 'debug', 'args', 'app_dir', 'data_dir', 'desktop', 'options', 'language']:
             ret += '%s=%s ' % (attr, Env.get(attr))
 
         return ret
