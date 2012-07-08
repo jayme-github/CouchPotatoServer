@@ -25,15 +25,24 @@ class Newznab(NZBProvider, RSS):
 
     limits_reached = {}
 
-    cat_ids = [
-        ([2010], ['dvdr']),
-        ([2030], ['cam', 'ts', 'dvdrip', 'tc', 'r5', 'scr']),
-        ([2040,2050,2060,1060], ['720p', '1080p']),
-        ([2050], ['bd50']),
-    ]
-    cat_backup_id = 2000
-
     http_time_between_calls = 1 # Seconds
+
+
+    def getCatId(self, host, identifier):
+        '''
+        Override couchpotato.core.providers.YarrProvider
+        Parse from host['cat_ids']
+        '''
+        log.debug('CatIDs in conf: %s', host['cat_ids'] )
+
+        for cats in host['cat_ids'].split('|'):
+            split_ids = cats.split(';')
+            ids = split_ids[ : len( split_ids ) -1 ]
+            qualities = split_ids[ len( split_ids ) -1 ].split(':')
+            if identifier in qualities:
+                return ids
+
+        return [ host['cat_backup'] ]
 
     def feed(self):
 
@@ -55,7 +64,7 @@ class Newznab(NZBProvider, RSS):
             return results
 
         arguments = tryUrlencode({
-            't': self.cat_backup_id,
+            't': host['cat_backup'],
             'r': host['api_key'],
             'i': 58,
         })
@@ -86,7 +95,7 @@ class Newznab(NZBProvider, RSS):
         if self.isDisabled(host):
             return results
 
-        cat_id = self.getCatId(quality['identifier'])
+        cat_id = self.getCatId(host, quality['identifier'])
         arguments = tryUrlencode({
             'imdbid': movie['library']['identifier'].replace('tt', ''),
             'cat': ','.join( [str(c) for c in cat_id] ),
@@ -96,7 +105,7 @@ class Newznab(NZBProvider, RSS):
         url = "%s&%s" % (self.getUrl(host['host'], self.urls['search']), arguments)
 
         cache_key = 'newznab.%s.%s.%s' % (host['host'], movie['library']['identifier'], cat_id[0])
-        single_cat = (len(cat_id) == 1 and cat_id[0] != self.cat_backup_id)
+        single_cat = (len(cat_id) == 1 and cat_id[0] != host['cat_backup'])
 
         results = self.createItems(url, cache_key, host, single_cat = single_cat, movie = movie, quality = quality)
 
@@ -165,13 +174,17 @@ class Newznab(NZBProvider, RSS):
         uses = [x.strip() for x in str(self.conf('use')).split(',')]
         hosts = [x.strip() for x in self.conf('host').split(',')]
         api_keys = [x.strip() for x in self.conf('api_key').split(',')]
+        cat_ids = [x.strip() for x in self.conf('cat_ids').split(',')]
+        cat_backups = [x.strip() for x in self.conf('cat_backup').split(',')]
 
         list = []
         for nr in range(len(hosts)):
             list.append({
                 'use': uses[nr],
                 'host': hosts[nr],
-                'api_key': api_keys[nr]
+                'api_key': api_keys[nr],
+                'cat_ids': cat_ids[nr],
+                'cat_backup': cat_backups[nr]
             })
 
         return list
