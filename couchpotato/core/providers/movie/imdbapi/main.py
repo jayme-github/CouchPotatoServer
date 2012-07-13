@@ -3,6 +3,7 @@ from couchpotato.core.helpers.encoding import tryUrlencode
 from couchpotato.core.helpers.variable import tryInt, tryFloat
 from couchpotato.core.logger import CPLog
 from couchpotato.core.providers.movie.base import MovieProvider
+from couchpotato.environment import Env
 import json
 import re
 import traceback
@@ -20,8 +21,9 @@ class IMDBAPI(MovieProvider):
     http_time_between_calls = 0
 
     def __init__(self):
-        # Disable as there is no multilanguage support...
-        #addEvent('movie.search', self.search)
+        # Disable if not english as there is no multilanguage support...
+        if Env.setting('language').startswith( 'en' ):
+            addEvent('movie.search', self.search)
         addEvent('movie.info', self.getInfo)
 
     def search(self, q, limit = 12):
@@ -103,6 +105,9 @@ class IMDBAPI(MovieProvider):
                 'writers': movie.get('Writer', '').split(','),
                 'actors': movie.get('Actors', '').split(','),
             }
+            # Remove plot as it is always in english (and tmdb provides a localized plot)
+            if not Env.setting('language').startswith( 'en' ):
+                del( movie_data['plot'] )
         except:
             log.error('Failed parsing IMDB API json: %s', traceback.format_exc())
 
