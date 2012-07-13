@@ -420,11 +420,11 @@ class Searcher(Plugin):
         else:
             if wanted_quality in pre_releases:
                 # Prerelease 1 week before theaters
-                if dates.get('theater') - 604800 < now:
+                if dates.get('theater') - 604800 < now: #FIXME: 604800 is two weeks...bug or feature?
                     return True
             else:
-                # 12 weeks after theater release
-                if dates.get('theater') > 0 and dates.get('theater') + 7257600 < now:
+                # 2 weeks after theater release
+                if dates.get('theater') > 0 and dates.get('theater') + (14*12*60*60) < now:
                     return True
 
                 if dates.get('dvd') > 0:
