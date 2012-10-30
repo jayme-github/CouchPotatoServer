@@ -22,7 +22,7 @@ class NZBMatrix(NZBProvider, RSS):
     cat_ids = [
         ([50], ['bd50']),
         ([42, 53], ['720p', '1080p']),
-        ([2], ['cam', 'ts', 'dvdrip', 'tc', 'r5', 'scr']),
+        ([2, 9], ['cam', 'ts', 'dvdrip', 'tc', 'r5', 'scr']),
         ([54], ['brrip']),
         ([1], ['dvdr']),
     ]
@@ -43,13 +43,12 @@ class NZBMatrix(NZBProvider, RSS):
             'username': self.conf('username'),
             'apikey': self.conf('api_key'),
             'searchin': 'weblink',
-            'age': Env.setting('retention', section = 'nzb'),
+            'maxage': Env.setting('retention', section = 'nzb'),
             'english': self.conf('english_only'),
         })
         url = "%s?%s" % (self.urls['search'], arguments)
 
         cache_key = 'nzbmatrix.%s.%s' % (movie['library'].get('identifier'), cat_ids)
-        single_cat = True
 
         data = self.getCache(cache_key, url, cache_timeout = 1800, headers = {'User-Agent': Env.getIdentifier()})
         if data:
@@ -86,7 +85,7 @@ class NZBMatrix(NZBProvider, RSS):
 
                     is_correct_movie = fireEvent('searcher.correct_movie',
                                                  nzb = new, movie = movie, quality = quality,
-                                                 imdb_results = True, single_category = single_cat, single = True)
+                                                 imdb_results = True, single = True)
 
                     if is_correct_movie:
                         new['score'] = fireEvent('score.calculate', new, movie, single = True)

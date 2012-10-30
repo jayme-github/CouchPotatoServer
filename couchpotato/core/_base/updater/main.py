@@ -14,6 +14,7 @@ import shutil
 import tarfile
 import time
 import traceback
+import version
 
 log = CPLog(__name__)
 
@@ -102,6 +103,8 @@ class Updater(Plugin):
             success = False
         else:
             success = self.updater.doUpdate()
+            if success:
+                fireEventAsync('app.restart')
 
         return jsonified({
             'success': success
@@ -112,7 +115,7 @@ class BaseUpdater(Plugin):
 
     repo_user = 'RuudBurger'
     repo_name = 'CouchPotatoServer'
-    branch = 'master'
+    branch = version.BRANCH
 
     version = None
     update_failed = False
@@ -302,7 +305,7 @@ class SourceUpdater(BaseUpdater):
                         if not os.path.isdir(dirname):
                             self.makeDir(dirname)
 
-                        os.rename(fromfile, tofile)
+                        shutil.move(fromfile, tofile)
                         try:
                             existing_files.remove(tofile)
                         except ValueError:
@@ -380,11 +383,6 @@ class SourceUpdater(BaseUpdater):
 
 class DesktopUpdater(BaseUpdater):
 
-    version = None
-    update_failed = False
-    update_version = None
-    last_check = 0
-
     def __init__(self):
         self.desktop = Env.get('desktop')
 
@@ -393,7 +391,7 @@ class DesktopUpdater(BaseUpdater):
             def do_restart(e):
                 if e['status'] == 'done':
                     fireEventAsync('app.restart')
-                else:
+                elif e['status'] == 'error':
                     log.error('Failed updating desktop: %s', e['exception'])
                     self.update_failed = True
 
@@ -408,7 +406,7 @@ class DesktopUpdater(BaseUpdater):
             'last_check': self.last_check,
             'update_version': self.update_version,
             'version': self.getVersion(),
-            'branch': 'desktop_build',
+            'branch': self.branch,
         }
 
     def check(self):

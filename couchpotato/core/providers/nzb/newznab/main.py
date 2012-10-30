@@ -1,7 +1,7 @@
 from couchpotato.core.event import fireEvent
 from couchpotato.core.helpers.encoding import tryUrlencode
 from couchpotato.core.helpers.rss import RSS
-from couchpotato.core.helpers.variable import cleanHost
+from couchpotato.core.helpers.variable import cleanHost, splitString
 from couchpotato.core.logger import CPLog
 from couchpotato.core.providers.nzb.base import NZBProvider
 from couchpotato.environment import Env
@@ -107,11 +107,11 @@ class Newznab(NZBProvider, RSS):
         cache_key = 'newznab.%s.%s.%s' % (host['host'], movie['library']['identifier'], cat_id[0])
         single_cat = (len(cat_id) == 1 and cat_id[0] != host['cat_backup'])
 
-        results = self.createItems(url, cache_key, host, single_cat = single_cat, movie = movie, quality = quality)
+        results = self.createItems(url, cache_key, host, movie = movie, quality = quality)
 
         return results
 
-    def createItems(self, url, cache_key, host, single_cat = False, movie = None, quality = None, for_feed = False):
+    def createItems(self, url, cache_key, host, movie = None, quality = None, for_feed = False):
         results = []
 
         data = self.getCache(cache_key, url, cache_timeout = 1800, headers = {'User-Agent': Env.getIdentifier()})
@@ -155,7 +155,7 @@ class Newznab(NZBProvider, RSS):
                     if not for_feed:
                         is_correct_movie = fireEvent('searcher.correct_movie',
                                                      nzb = new, movie = movie, quality = quality,
-                                                     imdb_results = True, single_category = single_cat, single = True)
+                                                     imdb_results = True, single = True)
 
                         if is_correct_movie:
                             new['score'] = fireEvent('score.calculate', new, movie, single = True)
@@ -171,11 +171,11 @@ class Newznab(NZBProvider, RSS):
 
     def getHosts(self):
 
-        uses = [x.strip() for x in str(self.conf('use')).split(',')]
-        hosts = [x.strip() for x in self.conf('host').split(',')]
-        api_keys = [x.strip() for x in self.conf('api_key').split(',')]
-        cat_ids = [x.strip() for x in self.conf('cat_ids').split(',')]
-        cat_backups = [x.strip() for x in self.conf('cat_backup').split(',')]
+        uses = splitString(str(self.conf('use')))
+        hosts = splitString(self.conf('host'))
+        api_keys = splitString(self.conf('api_key'))
+        cat_ids = splitString(self.conf('cat_ids'))
+        cat_backups = splitString(self.conf('cat_backup'))
 
         list = []
         for nr in range(len(hosts)):

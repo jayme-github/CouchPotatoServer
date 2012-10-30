@@ -1,8 +1,14 @@
 from couchpotato.core.helpers.rss import RSS
+<<<<<<< HEAD
 from couchpotato.core.helpers.variable import md5
 from couchpotato.core.logger import CPLog
 from couchpotato.core.providers.automation.base import Automation
 from couchpotato.environment import Env
+=======
+from couchpotato.core.helpers.variable import md5, tryInt
+from couchpotato.core.logger import CPLog
+from couchpotato.core.providers.automation.base import Automation
+>>>>>>> upstream/master
 import xml.etree.ElementTree as XMLTree
 
 log = CPLog(__name__)
@@ -19,8 +25,6 @@ class Bluray(Automation, RSS):
             return
 
         movies = []
-        RSSMovie = {'name': 'placeholder', 'year' : 'placeholder'}
-        RSSMovies = []
 
         cache_key = 'bluray.%s' % md5(self.rss_url)
         rss_data = self.getCache(cache_key, self.rss_url)
@@ -30,30 +34,16 @@ class Bluray(Automation, RSS):
             rss_movies = self.getElements(data, 'channel/item')
 
             for movie in rss_movies:
-                RSSMovie['name'] = self.getTextElement(movie, "title").lower().split("blu-ray")[0].strip("(").rstrip()
-                RSSMovie['year'] = self.getTextElement(movie, "description").split("|")[1].strip("(").strip()
+                name = self.getTextElement(movie, "title").lower().split("blu-ray")[0].strip("(").rstrip()
+                year = self.getTextElement(movie, "description").split("|")[1].strip("(").strip()
 
-                if not RSSMovie['name'].find("/") == -1: # make sure it is not a double movie release
+                if not name.find("/") == -1: # make sure it is not a double movie release
                     continue
 
-                if int(RSSMovie['year']) < Env.setting('year', 'automation'): #do year filtering
+                if tryInt(year) < self.getMinimal('year'):
                     continue
 
-                for test in RSSMovies:
-                    if test.values() == RSSMovie.values(): # make sure we did not already include it...
-                        break
-                else:
-                    log.info('Release found: %s.' % RSSMovie)
-                    RSSMovies.append(RSSMovie.copy())
-
-            if not RSSMovies:
-                log.info('No movies found.')
-                return
-
-            log.debug("Applying IMDB filter to found movies...")
-
-            for RSSMovie in RSSMovies:
-                imdb = self.getIMDBFromTitle(RSSMovie['name'] + ' ' + RSSMovie['year'])
+                imdb = self.search(name, year)
 
                 if imdb:
                     if self.isMinimalMovie(imdb):

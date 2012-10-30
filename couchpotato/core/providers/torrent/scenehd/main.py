@@ -12,11 +12,11 @@ log = CPLog(__name__)
 class SceneHD(TorrentProvider):
 
     urls = {
-        'test': 'http://scenehd.org/',
-        'login' : 'http://scenehd.org/takelogin.php',
-        'detail': 'http://scenehd.org/details.php?id=%s',
-        'search': 'http://scenehd.org/browse.php?ajax',
-        'download': 'http://scenehd.org/download.php?id=%s',
+        'test': 'https://scenehd.org/',
+        'login' : 'https://scenehd.org/takelogin.php',
+        'detail': 'https://scenehd.org/details.php?id=%s',
+        'search': 'https://scenehd.org/browse.php?ajax',
+        'download': 'https://scenehd.org/download.php?id=%s',
     }
 
     http_time_between_calls = 1 #seconds
@@ -79,7 +79,7 @@ class SceneHD(TorrentProvider):
 
                     new['score'] = fireEvent('score.calculate', new, movie, single = True)
                     is_correct_movie = fireEvent('searcher.correct_movie', nzb = new, movie = movie, quality = quality,
-                                                     imdb_results = imdb_results, single_category = False, single = True)
+                                                     imdb_results = imdb_results, single = True)
 
                     if is_correct_movie:
                         results.append(new)

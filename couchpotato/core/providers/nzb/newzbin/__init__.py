@@ -8,8 +8,9 @@ config = [{
     'groups': [
         {
             'tab': 'searcher',
-            'subtab': 'providers',
+            'subtab': 'nzb_providers',
             'name': 'newzbin',
+            'description': 'See <a href="https://www.newzbin2.es/">Newzbin</a>',
             'wizard': True,
             'options': [
                 {

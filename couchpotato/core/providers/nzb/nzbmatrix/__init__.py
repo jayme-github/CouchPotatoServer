@@ -8,9 +8,10 @@ config = [{
     'groups': [
         {
             'tab': 'searcher',
-            'subtab': 'providers',
+            'subtab': 'nzb_providers',
             'name': 'nzbmatrix',
             'label': 'NZBMatrix',
+            'description': 'See <a href="https://nzbmatrix.com/">NZBMatrix</a>',
             'wizard': True,
             'options': [
                 {

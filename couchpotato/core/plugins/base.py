@@ -1,6 +1,8 @@
+from StringIO import StringIO
 from couchpotato import addView
 from couchpotato.core.event import fireEvent, addEvent
-from couchpotato.core.helpers.encoding import tryUrlencode, simplifyString, ss
+from couchpotato.core.helpers.encoding import tryUrlencode, simplifyString, ss, \
+    toSafeString
 from couchpotato.core.helpers.variable import getExt
 from couchpotato.core.logger import CPLog
 from couchpotato.environment import Env
@@ -9,6 +11,7 @@ from multipartpost import MultipartPostHandler
 from urlparse import urlparse
 import cookielib
 import glob
+import gzip
 import math
 import os.path
 import re
@@ -101,10 +104,10 @@ class Plugin(object):
         if not params: params = {}
 
         # Fill in some headers
-        if not headers.get('Referer'):
-            headers['Referer'] = urlparse(url).hostname
-        if not headers.get('User-Agent'):
-            headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:10.0.2) Gecko/20100101 Firefox/10.0.2'
+        headers['Referer'] = headers.get('Referer', urlparse(url).hostname)
+        headers['Host'] = headers.get('Host', urlparse(url).hostname)
+        headers['User-Agent'] = headers.get('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:10.0.2) Gecko/20100101 Firefox/10.0.2')
+        headers['Accept-encoding'] = headers.get('Accept-encoding', 'gzip')
 
         host = urlparse(url).hostname
 
@@ -121,22 +124,30 @@ class Plugin(object):
         try:
 
             if multipart:
-                log.info('Opening multipart url: %s, params: %s', (url, [x for x in params.iterkeys()]))
+                log.info('Opening multipart url: %s, params: %s', (url, [x for x in params.iterkeys()] if isinstance(params, dict) else 'with data'))
                 request = urllib2.Request(url, params, headers)
 
                 cookies = cookielib.CookieJar()
                 opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cookies), MultipartPostHandler)
 
-                data = opener.open(request, timeout = timeout).read()
+                response = opener.open(request, timeout = timeout)
             else:
                 log.info('Opening url: %s, params: %s', (url, [x for x in params.iterkeys()]))
                 data = tryUrlencode(params) if len(params) > 0 else None
                 request = urllib2.Request(url, data, headers)
 
                 if opener:
-                    data = opener.open(request, timeout = timeout).read()
+                    response = opener.open(request, timeout = timeout)
                 else:
-                    data = urllib2.urlopen(request, timeout = timeout).read()
+                    response = urllib2.urlopen(request, timeout = timeout)
+
+            # unzip if needed
+            if response.info().get('Content-Encoding') == 'gzip':
+                buf = StringIO(response.read())
+                f = gzip.GzipFile(fileobj = buf)
+                data = f.read()
+            else:
+                data = response.read()
 
             self.http_failed_request[host] = 0
         except IOError:
@@ -182,6 +193,7 @@ class Plugin(object):
 
     def doShutdown(self):
         self.shuttingDown(True)
+        return True
 
     def shuttingDown(self, value = None):
         if value is None:
@@ -227,12 +239,29 @@ class Plugin(object):
                     self.setCache(cache_key, data, timeout = cache_timeout)
                 return data
             except:
-                pass
+                if not kwargs.get('show_error'):
+                    raise
 
     def setCache(self, cache_key, value, timeout = 300):
         log.debug('Setting cache %s', cache_key)
         Env.get('cache').set(cache_key, value, timeout)
         return value
+
+    def createNzbName(self, data, movie):
+        tag = self.cpTag(movie)
+        return '%s%s' % (toSafeString(data.get('name')[:127 - len(tag)]), tag)
+
+    def createFileName(self, data, filedata, movie):
+        name = os.path.join(self.createNzbName(data, movie))
+        if data.get('type') == 'nzb' and 'DOCTYPE nzb' not in filedata and '</nzb>' not in filedata:
+            return '%s.%s' % (name, 'rar')
+        return '%s.%s' % (name, data.get('type'))
+
+    def cpTag(self, movie):
+        if Env.setting('enabled', 'renamer'):
+            return '.cp(' + movie['library'].get('identifier') + ')' if movie['library'].get('identifier') else ''
+
+        return ''
 
     def isDisabled(self):
         return not self.isEnabled()
