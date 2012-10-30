@@ -1,10 +1,7 @@
 from couchpotato import get_session
 from couchpotato.core.event import addEvent, fireEvent
 from couchpotato.core.helpers.encoding import toUnicode
-<<<<<<< HEAD
-=======
 from couchpotato.core.helpers.variable import splitString
->>>>>>> upstream/master
 from couchpotato.core.logger import CPLog
 from couchpotato.core.plugins.base import Plugin
 from couchpotato.core.settings.model import Library, FileType

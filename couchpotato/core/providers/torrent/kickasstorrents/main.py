@@ -1,11 +1,7 @@
 from bs4 import BeautifulSoup
 from couchpotato.core.event import fireEvent
-<<<<<<< HEAD
-from couchpotato.core.helpers.variable import tryInt
-=======
 from couchpotato.core.helpers.encoding import simplifyString
 from couchpotato.core.helpers.variable import tryInt, getTitle
->>>>>>> upstream/master
 from couchpotato.core.logger import CPLog
 from couchpotato.core.providers.torrent.base import TorrentProvider
 import re
