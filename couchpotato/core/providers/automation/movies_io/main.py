@@ -3,7 +3,10 @@ from couchpotato.core.helpers.rss import RSS
 from couchpotato.core.helpers.variable import md5
 from couchpotato.core.logger import CPLog
 from couchpotato.core.providers.automation.base import Automation
-from xml.etree.ElementTree import ParseError
+try:
+    from xml.etree.ElementTree import ParseError
+except ImportError:
+    ParseError = None
 import traceback
 import xml.etree.ElementTree as XMLTree
 
