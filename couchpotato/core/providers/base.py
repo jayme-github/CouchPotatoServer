@@ -9,6 +9,7 @@ from couchpotato.core.helpers.encoding import simplifyString
 
 import re
 import time
+import traceback
 
 
 log = CPLog(__name__)
@@ -59,7 +60,12 @@ class YarrProvider(Provider):
         addEvent('nzb.feed', self.feed)
 
     def download(self, url = '', nzb_id = ''):
-        return self.urlopen(url)
+        try:
+            return self.urlopen(url, headers = {'User-Agent': Env.getIdentifier()}, show_error = False)
+        except:
+            log.error('Failed getting nzb from %s: %s', (self.getName(), traceback.format_exc()))
+
+        return 'try_next'
 
     def feed(self):
         return []
