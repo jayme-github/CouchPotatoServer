@@ -25,6 +25,8 @@ class Newznab(NZBProvider, RSS):
 
     limits_reached = {}
 
+    cat_backup_id = '2000'
+
     http_time_between_calls = 1 # Seconds
 
 
@@ -98,14 +100,13 @@ class Newznab(NZBProvider, RSS):
         cat_id = self.getCatId(host, quality['identifier'])
         arguments = tryUrlencode({
             'imdbid': movie['library']['identifier'].replace('tt', ''),
-            'cat': ','.join( [str(c) for c in cat_id] ),
+            'cat': ','.join(cat_id),
             'apikey': host['api_key'],
             'extended': 1
         })
         url = "%s&%s" % (self.getUrl(host['host'], self.urls['search']), arguments)
 
-        cache_key = 'newznab.%s.%s.%s' % (host['host'], movie['library']['identifier'], cat_id[0])
-        single_cat = (len(cat_id) == 1 and cat_id[0] != host['cat_backup'])
+        cache_key = 'newznab.%s.%s.%s' % (host['host'], movie['library']['identifier'], cat_id)
 
         results = self.createItems(url, cache_key, host, movie = movie, quality = quality)
 
