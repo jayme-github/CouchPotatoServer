@@ -79,12 +79,11 @@ class Newznab(NZBProvider, RSS):
 
         hosts = self.getHosts()
 
-        results = []
+        results = ResultList(self, movie, quality, imdb_result = True)
+
         for host in hosts:
             result = self.singleSearch(host, movie, quality)
-
-            if result:
-                results.extend(result)
+            results.extend(result)
 
         return results
 
@@ -93,7 +92,7 @@ class Newznab(NZBProvider, RSS):
         if self.isDisabled(host):
             return []
 
-        results = ResultList(self, movie, quality, imdb_result = True)
+        results = []
 
         cat_id = self.getCatId(host, quality['identifier'])
         arguments = tryUrlencode({
@@ -133,6 +132,8 @@ class Newznab(NZBProvider, RSS):
                 'detail_url': '%sdetails/%s' % (cleanHost(host['host']), nzb_id),
                 'content': self.getTextElement(nzb, 'description'),
             })
+
+        return results
 
     def getHosts(self):
 
