@@ -11,11 +11,11 @@ import traceback
 log = CPLog(__name__)
 
 
-class IMDBAPI(MovieProvider):
+class OMDBAPI(MovieProvider):
 
     urls = {
-        'search': 'http://www.imdbapi.com/?tomatoes=true&%s',
-        'info': 'http://www.imdbapi.com/?tomatoes=true&i=%s',
+        'search': 'http://www.omdbapi.com/?%s',
+        'info': 'http://www.omdbapi.com/?i=%s',
     }
 
     http_time_between_calls = 0
@@ -36,7 +36,7 @@ class IMDBAPI(MovieProvider):
                 'name': q
             }
 
-        cache_key = 'imdbapi.cache.%s' % q
+        cache_key = 'omdbapi.cache.%s' % q
         cached = self.getCache(cache_key, self.urls['search'] % tryUrlencode({'t': name_year.get('name'), 'y': name_year.get('year', '')}), timeout = 3)
 
         if cached:
@@ -54,7 +54,7 @@ class IMDBAPI(MovieProvider):
         if not identifier:
             return {}
 
-        cache_key = 'imdbapi.cache.%s' % identifier
+        cache_key = 'omdbapi.cache.%s' % identifier
         cached = self.getCache(cache_key, self.urls['info'] % identifier, timeout = 3)
 
         if cached:
