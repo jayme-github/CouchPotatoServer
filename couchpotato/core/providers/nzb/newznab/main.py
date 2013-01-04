@@ -26,53 +26,6 @@ class Newznab(NZBProvider, RSS):
 
     http_time_between_calls = 1 # Seconds
 
-    def getCatId(self, host, identifier):
-        '''
-        Override couchpotato.core.providers.YarrProvider
-        Parse from host['cat_ids']
-        '''
-        log.debug('CatIDs in conf: %s', host['cat_ids'] )
-
-        for cats in host['cat_ids'].split('|'):
-            split_ids = cats.split(';')
-            ids = split_ids[ : len( split_ids ) -1 ]
-            qualities = split_ids[ len( split_ids ) -1 ].split(':')
-            if identifier in qualities:
-                return ids
-
-        return [ host['cat_backup'] ]
-
-    def feed(self):
-
-        hosts = self.getHosts()
-
-        results = []
-        for host in hosts:
-            result = self.singleFeed(host)
-
-            if result:
-                results.extend(result)
-
-        return results
-
-    def singleFeed(self, host):
-
-        results = []
-        if self.isDisabled(host):
-            return results
-
-        arguments = tryUrlencode({
-            't': host['cat_backup'],
-            'r': host['api_key'],
-            'i': 58,
-        })
-        url = '%s?%s' % (cleanHost(host['host']) + 'rss', arguments)
-        cache_key = 'newznab.%s.feed.%s' % (host['host'], arguments)
-
-        results = self.createItems(url, cache_key, host, for_feed = True)
-
-        return results
-
     def search(self, movie, quality):
         hosts = self.getHosts()
 
@@ -88,7 +41,6 @@ class Newznab(NZBProvider, RSS):
 
     def _searchOnHost(self, host, movie, quality, results):
 
-        cat_id = self.getCatId(host, quality['identifier'])
         arguments = tryUrlencode({
             'imdbid': movie['library']['identifier'].replace('tt', ''),
             'apikey': host['api_key'],
@@ -131,17 +83,13 @@ class Newznab(NZBProvider, RSS):
         uses = splitString(str(self.conf('use')))
         hosts = splitString(self.conf('host'))
         api_keys = splitString(self.conf('api_key'))
-        cat_ids = splitString(self.conf('cat_ids'))
-        cat_backups = splitString(self.conf('cat_backup'))
 
         list = []
         for nr in range(len(hosts)):
             list.append({
                 'use': uses[nr],
                 'host': hosts[nr],
-                'api_key': api_keys[nr],
-                'cat_ids': cat_ids[nr],
-                'cat_backup': cat_backups[nr]
+                'api_key': api_keys[nr]
             })
 
         return list

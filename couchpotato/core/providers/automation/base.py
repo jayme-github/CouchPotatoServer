@@ -64,14 +64,6 @@ class Automation(Provider):
 
         return True
 
-    def getIMDBFromTitle(self, name, year = None):
-        result = fireEvent('movie.search', q = '%s %s' % (name, year), limit = 1, merge = True)
-
-        if len(result) > 0:
-            return result[0]
-        else:
-            return None
-
     def getMinimal(self, min_type):
         return Env.setting(min_type, 'automation')
 
